@@ -8,15 +8,5 @@ export default defineConfig({
     tailwindcss(),
     
   ],
-  build: {
-    rollupOptions: {
-      input: {
-        main: 'src/main.jsx', // Or your entry file
-        // You could have other entry points for different pages if needed
-      },
-      output: {
-        // ... output configuration ...
-      },
-    },
-  },
+  base: '/',
 })
