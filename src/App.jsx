@@ -67,10 +67,6 @@ function App() {
           type: 'image',
           source: 'camera',
           data: imagePreviewUrl,
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
         });
 
         setUploadStatus(response.data.message);
@@ -91,11 +87,7 @@ function App() {
           type: 'file',
           source: 'storage',
           uri: fileUri,
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        },);
 
         setUploadStatus(response.data.message);
         console.log('Server response:', response.data);
