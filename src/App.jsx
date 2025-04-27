@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios'; // Import Axios
 
 function App() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
@@ -57,63 +58,88 @@ function App() {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (imagePreviewUrl) {
-      setUploadStatus('Uploading image...');
-      // In a real scenario, you would send the base64 data to a server here
-      console.log('Uploading image:', imagePreviewUrl.substring(0, 100) + '...');
-      setTimeout(() => {
-        setUploadStatus('Image uploaded successfully!');
-      }, 1500);
+      setUploadStatus('Uploading image to server...');
+      try {
+        const response = await axios.post('http://localhost:5000/upload-media', {
+          type: 'image',
+          source: 'camera',
+          data: imagePreviewUrl,
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        setUploadStatus(response.data.message);
+        console.log('Server response:', response.data);
+      } catch (error) {
+        setUploadStatus(`Upload failed: ${error.message || 'Network error'}`);
+        console.error('Upload error:', error);
+      }
     } else if (fileUri) {
-      setUploadStatus('Uploading file...');
-      // In a real scenario, you would handle the file URI (potentially fetching its content or sending the URI to a server)
-      console.log('Uploading file URI:', fileUri);
-      setTimeout(() => {
-        setUploadStatus('File uploaded successfully!');
-      }, 1500);
+      setUploadStatus('Uploading file to server...');
+      try {
+        const response = await axios.post('http://localhost:5000/upload-media', {
+          type: 'file',
+          source: 'storage',
+          uri: fileUri,
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        setUploadStatus(response.data.message);
+        console.log('Server response:', response.data);
+      } catch (error) {
+        setUploadStatus(`Upload failed: ${error.message || 'Network error'}`);
+        console.error('Upload error:', error);
+      }
+      // alert('For file URIs, you would typically need to handle the file content differently (e.g., read it in React Native and send it to the backend). This is a more advanced topic.');
     } else {
       setUploadStatus('No image or file selected for upload.');
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
-      <h1 className="text-3xl font-bold mb-6 text-gray-300">Upload Media</h1>
-      <div className="mb-4">
+    <div className="flex flex-col items-center justify-start min-h-screen bg-gray-900 p-6 sm:p-8 md:p-10 lg:p-12 pt-32">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-300">Upload Media</h1>
+      <div className="flex flex-col sm:flex-row gap-4 mb-4 sm:mb-6 w-full sm:w-auto">
         <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline mr-2"
+          className="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline"
           onClick={handleOpenCamera}
         >
           Open Camera
         </button>
         <button
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline"
+          className="w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline"
           onClick={handleChooseFile}
         >
           Choose from Storage
         </button>
       </div>
 
-      <div className="mt-6 w-full max-w-md">
+      <div className="mt-4 sm:mt-6 w-full max-w-md">
         {imagePreviewUrl && (
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Image Preview</h2>
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">Image Preview</h2>
             <img src={imagePreviewUrl} alt="Image Preview" className="w-full rounded-md shadow-md" />
           </div>
         )}
 
         {fileUri && (
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Selected File</h2>
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">Selected File</h2>
             <div className="bg-gray-200 p-4 rounded-md shadow-sm">
-              <p className="text-gray-600">{fileUri}</p>
+              <p className="text-gray-600 break-words">{fileUri}</p>
             </div>
           </div>
         )}
 
         <button
-          className="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline w-full"
+          className="w-full bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline"
           onClick={handleUpload}
           disabled={!imagePreviewUrl && !fileUri}
         >
@@ -124,25 +150,24 @@ function App() {
           <p className="mt-4 text-center text-sm text-gray-600">{uploadStatus}</p>
         )}
       </div>
-      <div className="bg-gray-200 p-4 rounded-lg shadow-md mt-10">
-          <h3 className="font-medium flex items-center">
-            {/* <Shield size={20} className="text-green-500 mr-2" /> */}
-            Security Features
-          </h3>
-          <ul className="mt-2 text-sm text-gray-800">
-            <li className="flex items-center py-1">
-              • Screen capture protection enabled
-            </li>
-            <li className="flex items-center py-1">
-              • Secure camera access
-            </li>
-            <li className="flex items-center py-1">
-              • Private file handling
-            </li>
-          </ul>
-        </div>
+
+      <div className="bg-gray-200 p-4 rounded-lg shadow-md mt-8 w-full max-w-md">
+        <h3 className="font-medium flex items-center text-lg">
+          Security Features
+        </h3>
+        <ul className="mt-2 text-sm text-gray-800">
+          <li className="flex items-center py-1">
+            • Screen capture protection enabled
+          </li>
+          <li className="flex items-center py-1">
+            • Secure camera access
+          </li>
+          <li className="flex items-center py-1">
+            • Private file handling
+          </li>
+        </ul>
+      </div>
     </div>
-    
   );
 }
 
