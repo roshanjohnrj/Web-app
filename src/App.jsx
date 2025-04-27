@@ -5,6 +5,7 @@ function App() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [fileUri, setFileUri] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   useEffect(() => {
     const handleReactNativeMessage = (event) => {
@@ -74,9 +75,14 @@ function App() {
 
         setUploadStatus(response.data.message);
         console.log('Server response:', response.data);
+        setUploadSuccess(true); // Set upload success state
+        setTimeout(() => {
+          setUploadSuccess(false); // Reset after a delay
+        }, 3000); // Show success message for 3 seconds
       } catch (error) {
         setUploadStatus(`Upload failed: ${error.message || 'Network error'}`);
         console.error('Upload error:', error);
+        setUploadSuccess(false);
       }
     } else if (fileUri) {
       setUploadStatus('Uploading file to server...');
@@ -93,13 +99,19 @@ function App() {
 
         setUploadStatus(response.data.message);
         console.log('Server response:', response.data);
+        setUploadSuccess(true); // Set upload success state
+        setTimeout(() => {
+          setUploadSuccess(false); // Reset after a delay
+        }, 3000); // Show success message for 3 seconds
       } catch (error) {
         setUploadStatus(`Upload failed: ${error.message || 'Network error'}`);
         console.error('Upload error:', error);
+        setUploadSuccess(false);
       }
       // alert('For file URIs, you would typically need to handle the file content differently (e.g., read it in React Native and send it to the backend). This is a more advanced topic.');
     } else {
       setUploadStatus('No image or file selected for upload.');
+      setUploadSuccess(false);
     }
   };
 
@@ -121,7 +133,7 @@ function App() {
         </button>
       </div>
 
-      <div className="mt-4 sm:mt-6 w-full max-w-md">
+      <div className="mt-4 sm:mt-6 w-full max-w-md relative">
         {imagePreviewUrl && (
           <div className="mb-4 sm:mb-6">
             <h2 className="text-lg font-semibold text-gray-700 mb-2">Image Preview</h2>
@@ -148,6 +160,15 @@ function App() {
 
         {uploadStatus && (
           <p className="mt-4 text-center text-sm text-gray-600">{uploadStatus}</p>
+        )}
+
+        {uploadSuccess && (
+          <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 rounded-md">
+            <div className="bg-white p-6 rounded-md shadow-lg">
+              <h2 className="text-xl font-bold text-green-500 mb-2">Upload Successful!</h2>
+              <p className="text-gray-700">Your media has been uploaded successfully.</p>
+            </div>
+          </div>
         )}
       </div>
 
