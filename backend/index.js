@@ -1,9 +1,14 @@
 import express from 'express';
 import cors from 'cors'; // For enabling CORS
+import dotenv from 'dotenv'; // For loading environment variables
+
+dotenv.config({
+  path:'.env'
+})
 
 
 const app = express();
-const port = 5000; // You can choose a different port
+const port = process.env.PORT// You can choose a different port
 app.use(express.json()); // For parsing application/json
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(cors()); // Enable CORS for all origins (for development)
