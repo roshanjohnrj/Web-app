@@ -63,7 +63,7 @@ function App() {
     if (imagePreviewUrl) {
       setUploadStatus('Uploading image to server...');
       try {
-        const response = await axios.post('http://localhost:5000/upload-media', {
+        const response = await axios.post('https://web-app-backend-794f.onrender.com/upload-media', {
           type: 'image',
           source: 'camera',
           data: imagePreviewUrl,
@@ -87,7 +87,7 @@ function App() {
     } else if (fileUri) {
       setUploadStatus('Uploading file to server...');
       try {
-        const response = await axios.post('http://localhost:5000/upload-media', {
+        const response = await axios.post('https://web-app-backend-794f.onrender.com/upload-media', {
           type: 'file',
           source: 'storage',
           uri: fileUri,
