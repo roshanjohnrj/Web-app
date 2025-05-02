@@ -38,7 +38,7 @@ function App() {
     return () => {
       window.removeEventListener('message', handleReactNativeMessage);
     };
-  }, []);
+  },  [setImagePreviewUrl, setFileBase64Data, setUploadStatus]);
   const handleOpenCamera = () => {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'uploadRequest', source: 'camera' }));
