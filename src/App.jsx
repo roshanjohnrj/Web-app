@@ -3,7 +3,7 @@ import axios from 'axios'; // Import Axios
 
 function App() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
-  const [fileUri, setFileUri] = useState(null);
+  const [fileBase64Data, setFileBase64Data] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -14,15 +14,15 @@ function App() {
         if (data.type === 'image' || data.type === 'file') {
           if (data.source === 'camera' && data.data) {
             setImagePreviewUrl(data.data);
-            setFileUri(null);
+            setFileBase64Data(null);
             setUploadStatus('');
-          } else if (data.source === 'storage' && data.uri) {
-            setFileUri(data.uri);
+          } else if (data.source === 'storage' && data.data) {
+            setFileBase64Data(data.data);
             setImagePreviewUrl(null);
-            setUploadStatus('File selected. URI: ' + data.uri);
+            setUploadStatus('File selected. URI: ' + data.data);
           } else {
             setImagePreviewUrl(null);
-            setFileUri(null);
+            setFileBase64Data(null);
             setUploadStatus('');
           }
         }
@@ -43,7 +43,7 @@ function App() {
 
   const handleOpenCamera = () => {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'image', source: 'camera' }));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'uploadRequest', source: 'camera' }));
       setUploadStatus('Opening camera...');
     } else {
       alert('Camera functionality not available in this context.');
@@ -52,7 +52,7 @@ function App() {
 
   const handleChooseFile = () => {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'file', source: 'storage' }));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'uploadRequest', source: 'storage' }));
       setUploadStatus('Opening file picker...');
     } else {
       alert('Storage functionality not available in this context.');
@@ -80,21 +80,21 @@ function App() {
         console.error('Upload error:', error);
         setUploadSuccess(false);
       }
-    } else if (fileUri) {
+    } else if (fileBase64Data) {
+      setUploadStatus('Uploading file to server...');
       setUploadStatus('Uploading file to server...');
       try {
         const response = await axios.post('https://web-app-backend-794f.onrender.com/upload-media', {
           type: 'file',
           source: 'storage',
-          uri: fileUri,
-        },);
-
+          data: fileBase64Data, // Sending Base64 data
+        });
         setUploadStatus(response.data.message);
         console.log('Server response:', response.data);
-        setUploadSuccess(true); // Set upload success state
+        setUploadSuccess(true);
         setTimeout(() => {
-          setUploadSuccess(false); // Reset after a delay
-        }, 3000); // Show success message for 3 seconds
+          setUploadSuccess(false);
+        }, 3000);
       } catch (error) {
         setUploadStatus(`Upload failed: ${error.message || 'Network error'}`);
         console.error('Upload error:', error);
@@ -133,11 +133,11 @@ function App() {
           </div>
         )}
 
-        {fileUri && (
+        {fileBase64Data && (
           <div className="mb-4 sm:mb-6">
             <h2 className="text-lg font-semibold text-gray-700 mb-2">Selected File</h2>
             <div className="bg-gray-200 p-4 rounded-md shadow-sm">
-              <p className="text-gray-600 break-words">{fileUri}</p>
+              <p className="text-gray-600 break-words">{fileBase64Data}</p>
             </div>
           </div>
         )}
@@ -145,7 +145,7 @@ function App() {
         <button
           className="w-full bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline"
           onClick={handleUpload}
-          disabled={!imagePreviewUrl && !fileUri}
+          disabled={!imagePreviewUrl && !fileBase64Data}
         >
           Upload
         </button>

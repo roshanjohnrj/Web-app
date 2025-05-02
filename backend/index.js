@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { Buffer } from 'buffer';
 
 dotenv.config({
   path: '.env',
@@ -25,7 +26,7 @@ const UPLOAD_DIR = path.join(__dirname, 'uploads');
 fs.mkdir(UPLOAD_DIR, { recursive: true }).catch(console.error);
 
 app.post('/upload-media', async (req, res) => {
-  const { type, source, data, uri } = req.body;
+  const { type, source, data } = req.body;
 
   if (type === 'image' && source === 'camera' && data) {
     try {
@@ -41,13 +42,33 @@ app.post('/upload-media', async (req, res) => {
       console.error('Error saving image:', error);
       res.status(500).json({ error: 'Failed to save image.' });
     }
-  } else if (type === 'file' && source === 'storage' && uri) {
-    console.log('Received file URI from storage (cannot directly access):', uri);
-    res.json({ message: 'File URI from storage received! (Backend cannot directly access)' });
+  } else if (type === 'file' && source === 'storage' && data) { //  && data  <-  IMPORTANT
+    try {
+      const base64File = data; //  No need to split, data is already the base64
+      const fileExtension = getFileExtensionFromBase64(base64File); //  Function
+      const fileName = `file_${Date.now()}.${fileExtension}`;
+      const filePath = path.join(UPLOAD_DIR, fileName);
+      const buffer = Buffer.from(base64File, 'base64');
+      await fs.writeFile(filePath, buffer);
+
+      console.log('Received and saved file from storage:', filePath);
+      res.json({ message: 'File from storage uploaded successfully!', filePath: `/uploads/${fileName}` });
+    } catch (error) {
+      console.error('Error saving file:', error);
+      res.status(500).json({ error: 'Failed to save file.' });
+    }
   } else {
     res.status(400).json({ error: 'Invalid upload request.' });
   }
 });
+
+
+// Helper function to extract file extension (Important!)
+function getFileExtensionFromBase64(base64Data) {
+  const mimeType = base64Data.substring(base64Data.indexOf(":") + 1, base64Data.indexOf(";"));
+  const extension = mimeType.split("/")[1];
+  return extension;
+}
 
 // Serve the uploaded files statically
 app.use('/uploads', express.static(UPLOAD_DIR));
