@@ -12,35 +12,33 @@ function App() {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'image' || data.type === 'file') {
+          setUploadStatus(''); // Reset status first
           if (data.source === 'camera' && data.data) {
             setImagePreviewUrl(data.data);
             setFileBase64Data(null);
-            setUploadStatus('');
           } else if (data.source === 'storage' && data.data) {
             setFileBase64Data(data.data);
             setImagePreviewUrl(null);
-            setUploadStatus('File selected. URI: ' + data.data);
+            setUploadStatus('File selected.'); //  Simplified status
           } else {
             setImagePreviewUrl(null);
             setFileBase64Data(null);
-            setUploadStatus('');
           }
         }
       } catch (error) {
         console.error('Error processing message from React Native:', error);
         setImagePreviewUrl(null);
-        setFileUri(null);
+        setFileBase64Data(null);
         setUploadStatus('Error processing data.');
       }
     };
-
+  
     window.addEventListener('message', handleReactNativeMessage);
-
+  
     return () => {
       window.removeEventListener('message', handleReactNativeMessage);
     };
   }, []);
-
   const handleOpenCamera = () => {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'uploadRequest', source: 'camera' }));
