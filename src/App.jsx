@@ -9,6 +9,7 @@ function App() {
 
   useEffect(() => {
     const handleReactNativeMessage = (event) => {
+      console.log('Received message in WebView:', event.data)
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'image' || data.type === 'file') {
@@ -39,6 +40,8 @@ function App() {
       window.removeEventListener('message', handleReactNativeMessage);
     };
   },  [setImagePreviewUrl, setFileBase64Data, setUploadStatus]);
+
+
   const handleOpenCamera = () => {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'uploadRequest', source: 'camera' }));
