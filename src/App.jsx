@@ -43,7 +43,7 @@ function App() {
 
   const handleOpenCamera = () => {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'uploadRequest', source: 'camera' }));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'image', source: 'camera' }));
       setUploadStatus('Opening camera...');
     } else {
       alert('Camera functionality not available in this context.');
@@ -52,7 +52,7 @@ function App() {
 
   const handleChooseFile = () => {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'uploadRequest', source: 'storage' }));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'file', source: 'storage' }));
       setUploadStatus('Opening file picker...');
     } else {
       alert('Storage functionality not available in this context.');

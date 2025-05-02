@@ -1,33 +1,56 @@
 import express from 'express';
-import cors from 'cors'; // For enabling CORS
-import dotenv from 'dotenv'; // For loading environment variables
+import cors from 'cors';
+import dotenv from 'dotenv';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 dotenv.config({
-  path:'.env'
-})
+  path: '.env',
+});
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
-const port = process.env.PORT// You can choose a different port
-app.use(express.json()); // For parsing application/json
-app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
-app.use(cors()); // Enable CORS for all origins (for development)
+const port = process.env.PORT || 5000;
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cors());
 
-app.post('/upload-media', (req, res) => {
-    const { type, source, data, uri } = req.body;
-  
-    if (type === 'image' && source === 'camera' && data) {
-      // Process the image data (save to file, database, etc.)
-      console.log('Received image from camera (first 50 chars):', data.substring(0, 50) + '...');
-      res.json({ message: 'Image from camera uploaded successfully!' });
-    } else if (type === 'file' && source === 'storage' && uri) {
-      // Handle the file URI (for learning, just log it)
-      console.log('Received file URI from storage:', uri);
-      res.json({ message: 'File URI from storage received!' });
-    } else {
-      res.status(400).json({ error: 'Invalid upload request.' });
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+
+// Ensure the upload directory exists
+fs.mkdir(UPLOAD_DIR, { recursive: true }).catch(console.error);
+
+app.post('/upload-media', async (req, res) => {
+  const { type, source, data, uri } = req.body;
+
+  if (type === 'image' && source === 'camera' && data) {
+    try {
+      const base64Image = data.split(';base64,').pop();
+      const imageName = `camera_${Date.now()}.png`;
+      const imagePath = path.join(UPLOAD_DIR, imageName);
+      const buffer = Buffer.from(base64Image, 'base64');
+      await fs.writeFile(imagePath, buffer);
+
+      console.log('Received and saved image from camera:', imagePath);
+      res.json({ message: 'Image from camera uploaded successfully!', filePath: `/uploads/${imageName}` });
+    } catch (error) {
+      console.error('Error saving image:', error);
+      res.status(500).json({ error: 'Failed to save image.' });
     }
-  });
+  } else if (type === 'file' && source === 'storage' && uri) {
+    console.log('Received file URI from storage (cannot directly access):', uri);
+    res.json({ message: 'File URI from storage received! (Backend cannot directly access)' });
+  } else {
+    res.status(400).json({ error: 'Invalid upload request.' });
+  }
+});
+
+// Serve the uploaded files statically
+app.use('/uploads', express.static(UPLOAD_DIR));
 
 app.get('/', (req, res) => {
   res.send('Backend server is running!');
