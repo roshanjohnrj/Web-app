@@ -52,6 +52,7 @@ function App() {
   };
 
   const handleChooseFile = () => {
+    console.log('Choose file button clicked');
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'uploadRequest', source: 'storage' }));
       setUploadStatus('Opening file picker...');
