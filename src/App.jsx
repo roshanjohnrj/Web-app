@@ -11,7 +11,7 @@ function App() {
     const handleReactNativeMessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'uploadResult') {
+        if (data.type === 'image' || data.type === 'file') {
           if (data.source === 'camera' && data.data) {
             setImagePreviewUrl(data.data);
             setFileUri(null);
